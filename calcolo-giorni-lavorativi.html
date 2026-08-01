@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcolatore Giorni Lavorativi tra Due Date | Festività Italiane</title>
+<meta name="description" content="Calcola gratuitamente i giorni lavorativi effettivi tra due date, escludendo weekend e festività italiane. Utile per ferie, preavviso di dimissioni e scadenze contrattuali.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          emerald: {
+            950: '#042f2a',
+            900: '#064e3b',
+            800: '#065f46',
+            700: '#047857',
+            600: '#059669',
+            500: '#10b981',
+          },
+          slate: {
+            950: '#0b1120',
+          }
+        },
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          soft: '0 10px 40px -12px rgba(4, 47, 42, 0.25)',
+          softlg: '0 20px 60px -15px rgba(4, 47, 42, 0.35)',
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Sora', sans-serif; }
+  .toggle-dot { transition: transform 0.25s ease; }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(28%) sepia(45%) saturate(1200%) hue-rotate(120deg) brightness(90%);
+    cursor: pointer;
+  }
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .num-transition { transition: all 0.25s ease; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-white">
+  <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-20 sm:pt-16 sm:pb-28">
+    <div class="flex items-center gap-2 mb-5">
+      <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      </div>
+      <span class="text-sm font-semibold tracking-wide text-emerald-300 uppercase">Strumento gratuito</span>
+    </div>
+    <h1 class="font-display text-3xl sm:text-5xl font-bold leading-tight max-w-2xl">
+      Calcolatore di Giorni Lavorativi tra due Date
+    </h1>
+    <p class="mt-4 text-slate-300 max-w-xl text-base sm:text-lg">
+      Calcola in tempo reale i giorni lavorativi effettivi in Italia, escludendo automaticamente weekend e festività nazionali. Ideale per ferie, preavvisi e scadenze contrattuali.
+    </p>
+  </div>
+</header>
+
+<!-- MAIN CARD (overlapping header) -->
+<main class="max-w-5xl mx-auto px-5 sm:px-8 -mt-14 sm:-mt-16 pb-16">
+
+  <section class="bg-white rounded-3xl shadow-softlg border border-slate-100 p-5 sm:p-8">
+
+    <!-- Inputs -->
+    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+      <div>
+        <label for="startDate" class="block text-sm font-semibold text-slate-600 mb-2">Data di Inizio</label>
+        <input type="date" id="startDate" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition">
+      </div>
+      <div>
+        <label for="endDate" class="block text-sm font-semibold text-slate-600 mb-2">Data di Fine</label>
+        <input type="date" id="endDate" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition">
+      </div>
+    </div>
+
+    <!-- Toggle settimana lavorativa -->
+    <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 border border-slate-100 rounded-2xl p-4">
+      <div>
+        <p class="font-semibold text-slate-700 text-sm">Settimana lavorativa</p>
+        <p class="text-xs text-slate-500 mt-0.5">Scegli se includere il sabato tra i giorni lavorativi</p>
+      </div>
+      <div class="flex items-center gap-3 self-start sm:self-auto">
+        <span id="label5" class="text-sm font-semibold text-emerald-800">Lun–Ven (5gg)</span>
+        <button id="weekToggle" type="button" aria-pressed="false" class="relative w-14 h-8 rounded-full bg-emerald-700 transition-colors duration-300 flex-shrink-0">
+          <span id="toggleDot" class="toggle-dot absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform translate-x-0"></span>
+        </button>
+        <span id="label6" class="text-sm font-semibold text-slate-400">Lun–Sab (6gg)</span>
+      </div>
+    </div>
+
+    <!-- Risultati -->
+    <div class="mt-8">
+      <div class="grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="bg-slate-50 rounded-2xl p-3 sm:p-5 text-center border border-slate-100">
+          <p id="totalDays" class="num-transition font-display text-2xl sm:text-3xl font-bold text-slate-700">0</p>
+          <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">Giorni di<br class="sm:hidden">calendario</p>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-3 sm:p-5 text-center border border-slate-100">
+          <p id="weekendDays" class="num-transition font-display text-2xl sm:text-3xl font-bold text-slate-500">0</p>
+          <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">Weekend<br class="sm:hidden">esclusi</p>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-3 sm:p-5 text-center border border-slate-100">
+          <p id="holidayDays" class="num-transition font-display text-2xl sm:text-3xl font-bold text-slate-500">0</p>
+          <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">Festività<br class="sm:hidden">escluse</p>
+        </div>
+      </div>
+
+      <!-- Risultato principale -->
+      <div class="mt-4 rounded-2xl bg-gradient-to-br from-emerald-800 to-emerald-950 p-6 sm:p-8 text-center shadow-soft">
+        <p class="text-emerald-300 text-xs sm:text-sm font-semibold uppercase tracking-wider">Giorni Lavorativi Effettivi</p>
+        <p id="workingDays" class="num-transition font-display text-5xl sm:text-6xl font-extrabold text-white mt-2">0</p>
+        <p id="rangeLabel" class="text-emerald-200/70 text-xs sm:text-sm mt-3">Seleziona due date per iniziare</p>
+      </div>
+
+      <!-- Elenco festività nel periodo -->
+      <div id="holidayListWrap" class="mt-4 hidden">
+        <button id="toggleHolidayList" class="text-sm font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
+          <span id="holidayListLabel">Mostra festività nel periodo</span>
+          <svg id="chevron" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <ul id="holidayList" class="hidden mt-3 space-y-1.5 text-sm text-slate-600 bg-slate-50 rounded-xl p-4 border border-slate-100"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPAZIO PUBBLICITARIO -->
+  <div class="mt-6 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/60 p-6 sm:p-8 text-center">
+    <p class="text-slate-400 text-xs sm:text-sm font-semibold uppercase tracking-widest">Spazio Pubblicitario</p>
+    <p class="text-slate-300 text-xs mt-1">Banner Google AdSense</p>
+    <!-- Inserire qui il codice AdSense -->
+  </div>
+
+  <!-- SEZIONE SEO -->
+  <section class="mt-12 bg-white rounded-3xl shadow-soft border border-slate-100 p-6 sm:p-10">
+    <article class="prose prose-slate max-w-none prose-headings:font-display prose-headings:text-slate-800 prose-a:text-emerald-700">
+
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Come si calcolano i giorni lavorativi in Italia</h2>
+      <p class="text-slate-600 leading-relaxed">
+        Calcolare correttamente i giorni lavorativi tra due date è un'esigenza comune per lavoratori, datori di lavoro e liberi professionisti, soprattutto quando si tratta di pianificare ferie, gestire un preavviso di dimissioni o rispettare una scadenza contrattuale. In Italia, il concetto di "giorno lavorativo" esclude generalmente le domeniche e le festività nazionali, mentre il sabato può essere considerato lavorativo o meno a seconda del contratto collettivo (CCNL) applicato e dell'orario settimanale dell'azienda: con la settimana corta (5 giorni) il sabato è un giorno di riposo, mentre con la settimana lunga (6 giorni) il sabato rientra tra i giorni lavorativi.
+      </p>
+      <p class="text-slate-600 leading-relaxed mt-4">
+        Per il calcolo delle <strong>ferie</strong>, molti contratti esprimono il diritto maturato in giorni lavorativi anziché in giorni di calendario: sapere con precisione quanti giorni lavorativi cadono in un determinato periodo permette di pianificare correttamente l'assenza senza intaccare più giorni di ferie del dovuto. Allo stesso modo, per il <strong>preavviso di dimissioni</strong>, il CCNL di riferimento indica solitamente un numero di giorni di calendario o di mesi, ma è comunque utile individuare l'ultimo giorno lavorativo effettivo per organizzare il passaggio di consegne. Anche per le <strong>scadenze contrattuali</strong>, come il termine per rispondere a una comunicazione formale, depositare un documento o rispettare un termine processuale, è fondamentale sapere se la scadenza cade in un giorno festivo: in questi casi, la prassi comune (e in molti ambiti anche la norma di legge) prevede lo slittamento al primo giorno lavorativo utile successivo.
+      </p>
+      <p class="text-slate-600 leading-relaxed mt-4">
+        Le festività nazionali italiane da considerare sono fisse (1° gennaio, 6 gennaio, 25 aprile, 1° maggio, 2 giugno, 15 agosto, 1° novembre, 8 dicembre, 25 e 26 dicembre) e una mobile, il Lunedì dell'Angelo o Pasquetta, il cui giorno cambia ogni anno in base al calcolo della Pasqua. Questo calcolatore tiene conto automaticamente di tutte queste ricorrenze, restituendo il numero esatto di giorni lavorativi effettivi compresi tra due date, senza calcoli manuali soggetti a errore.
+      </p>
+
+      <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Domande Frequenti (FAQ)</h3>
+
+      <div class="space-y-5">
+        <div>
+          <p class="font-semibold text-slate-800">Il sabato è considerato un giorno lavorativo in Italia?</p>
+          <p class="text-slate-600 leading-relaxed mt-1">
+            Dipende dal contratto applicato. Se l'azienda adotta la settimana lavorativa corta (5 giorni, dal lunedì al venerdì), il sabato è equiparato al riposo settimanale. Se invece si applica la settimana lunga (6 giorni), il sabato è a tutti gli effetti un giorno lavorativo. Per questo il calcolatore permette di scegliere l'opzione corretta in base al proprio contratto.
+          </p>
+        </div>
+        <div>
+          <p class="font-semibold text-slate-800">Cosa succede se una festività cade di sabato o domenica?</p>
+          <p class="text-slate-600 leading-relaxed mt-1">
+            A differenza di altri Paesi, in Italia le festività nazionali che cadono di sabato o domenica non vengono recuperate con un giorno di riposo compensativo aggiuntivo, salvo diverse previsioni del contratto collettivo. Ai fini del calcolo dei giorni lavorativi, se una festività coincide con un giorno già escluso come weekend, non riduce ulteriormente il totale dei giorni lavorativi disponibili.
+          </p>
+        </div>
+        <div>
+          <p class="font-semibold text-slate-800">Il preavviso di dimissioni si calcola in giorni lavorativi o di calendario?</p>
+          <p class="text-slate-600 leading-relaxed mt-1">
+            Nella maggior parte dei CCNL italiani il periodo di preavviso è espresso in giorni di calendario o in mesi solari, non in giorni lavorativi. È comunque utile calcolare i giorni lavorativi effettivi compresi nel periodo di preavviso per organizzare al meglio la fase di transizione, il passaggio di consegne e l'eventuale richiesta di ferie residue.
+          </p>
+        </div>
+      </div>
+
+    </article>
+  </section>
+
+  <p class="text-center text-xs text-slate-400 mt-8">
+    Strumento a scopo informativo. Per questioni contrattuali o legali specifiche, consulta il tuo CCNL di riferimento o un consulente del lavoro.
+  </p>
+
+</main>
+
+<script>
+(function () {
+  const startInput = document.getElementById('startDate');
+  const endInput = document.getElementById('endDate');
+  const weekToggle = document.getElementById('weekToggle');
+  const toggleDot = document.getElementById('toggleDot');
+  const label5 = document.getElementById('label5');
+  const label6 = document.getElementById('label6');
+
+  const totalDaysEl = document.getElementById('totalDays');
+  const weekendDaysEl = document.getElementById('weekendDays');
+  const holidayDaysEl = document.getElementById('holidayDays');
+  const workingDaysEl = document.getElementById('workingDays');
+  const rangeLabelEl = document.getElementById('rangeLabel');
+  const holidayListWrap = document.getElementById('holidayListWrap');
+  const holidayList = document.getElementById('holidayList');
+  const toggleHolidayList = document.getElementById('toggleHolidayList');
+  const holidayListLabel = document.getElementById('holidayListLabel');
+  const chevron = document.getElementById('chevron');
+
+  let includeSaturday = false;
+
+  // Imposta date di default: oggi -> oggi + 30 giorni
+  const today = new Date();
+  const in30 = new Date();
+  in30.setDate(today.getDate() + 30);
+  startInput.value = formatInputDate(today);
+  endInput.value = formatInputDate(in30);
+
+  function formatInputDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function formatItDate(d) {
+    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // Calcolo della Domenica di Pasqua (algoritmo di Gauss / anonimo gregoriano)
+  function getEasterSunday(year) {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31); // 3 = marzo, 4 = aprile
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  function getEasterMonday(year) {
+    const easter = getEasterSunday(year);
+    const monday = new Date(easter);
+    monday.setDate(easter.getDate() + 1);
+    return monday;
+  }
+
+  // Restituisce un Set di stringhe "YYYY-MM-DD" con le festività italiane per un dato anno
+  function getItalianHolidays(year) {
+    const fixed = [
+      [1, 1, "Capodanno"],
+      [1, 6, "Epifania"],
+      [4, 25, "Festa della Liberazione"],
+      [5, 1, "Festa del Lavoro"],
+      [6, 2, "Festa della Repubblica"],
+      [8, 15, "Ferragosto"],
+      [11, 1, "Ognissanti"],
+      [12, 8, "Immacolata Concezione"],
+      [12, 25, "Natale"],
+      [12, 26, "Santo Stefano"],
+    ];
+    const map = new Map();
+    fixed.forEach(([m, d, name]) => {
+      const key = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      map.set(key, name);
+    });
+    const easterMonday = getEasterMonday(year);
+    const emKey = formatInputDate(easterMonday);
+    map.set(emKey, "Lunedì dell'Angelo (Pasquetta)");
+    return map;
+  }
+
+  function calculate() {
+    const startVal = startInput.value;
+    const endVal = endInput.value;
+
+    if (!startVal || !endVal) {
+      resetResults();
+      return;
+    }
+
+    let start = new Date(startVal + 'T00:00:00');
+    let end = new Date(endVal + 'T00:00:00');
+
+    if (start > end) {
+      // scambia automaticamente se l'utente inverte le date
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    const oneDay = 24 * 60 * 60 * 1000;
+    const totalDays = Math.round((end - start) / oneDay) + 1;
+
+    // Costruisce la mappa delle festività per tutti gli anni coinvolti
+    const holidaysMap = new Map();
+    for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+      const yearHolidays = getItalianHolidays(y);
+      yearHolidays.forEach((name, key) => holidaysMap.set(key, name));
+    }
+
+    let weekendCount = 0;
+    let holidayCount = 0;
+    let workingCount = 0;
+    const holidaysInRange = [];
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dayOfWeek = d.getDay(); // 0 = domenica, 6 = sabato
+      const dateKey = formatInputDate(d);
+      const isHolidayDate = holidaysMap.has(dateKey);
+
+      let isNonWorkingWeekend;
+      if (includeSaturday) {
+        isNonWorkingWeekend = dayOfWeek === 0; // solo domenica
+      } else {
+        isNonWorkingWeekend = dayOfWeek === 0 || dayOfWeek === 6; // sab e dom
+      }
+
+      if (isNonWorkingWeekend) {
+        weekendCount++;
+      } else if (isHolidayDate) {
+        holidayCount++;
+        holidaysInRange.push({ date: new Date(d), name: holidaysMap.get(dateKey) });
+      } else {
+        workingCount++;
+      }
+    }
+
+    totalDaysEl.textContent = totalDays;
+    weekendDaysEl.textContent = weekendCount;
+    holidayDaysEl.textContent = holidayCount;
+    workingDaysEl.textContent = workingCount;
+
+    rangeLabelEl.textContent = `Dal ${formatItDate(start)} al ${formatItDate(end)}`;
+
+    [totalDaysEl, weekendDaysEl, holidayDaysEl, workingDaysEl].forEach(el => {
+      el.classList.remove('fade-in');
+      void el.offsetWidth;
+      el.classList.add('fade-in');
+    });
+
+    // Elenco festività nel periodo
+    if (holidaysInRange.length > 0) {
+      holidayListWrap.classList.remove('hidden');
+      holidayListLabel.textContent = `Mostra festività nel periodo (${holidaysInRange.length})`;
+      holidayList.innerHTML = holidaysInRange
+        .map(h => `<li class="flex justify-between gap-3"><span>${h.name}</span><span class="text-slate-400 font-medium">${formatItDate(h.date)}</span></li>`)
+        .join('');
+    } else {
+      holidayListWrap.classList.add('hidden');
+      holidayList.classList.add('hidden');
+      holidayList.classList.remove('fade-in');
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function resetResults() {
+    totalDaysEl.textContent = '0';
+    weekendDaysEl.textContent = '0';
+    holidayDaysEl.textContent = '0';
+    workingDaysEl.textContent = '0';
+    rangeLabelEl.textContent = 'Seleziona due date per iniziare';
+    holidayListWrap.classList.add('hidden');
+  }
+
+  weekToggle.addEventListener('click', () => {
+    includeSaturday = !includeSaturday;
+    weekToggle.setAttribute('aria-pressed', String(includeSaturday));
+    if (includeSaturday) {
+      toggleDot.style.transform = 'translateX(24px)';
+      label5.classList.remove('text-emerald-800');
+      label5.classList.add('text-slate-400');
+      label6.classList.remove('text-slate-400');
+      label6.classList.add('text-emerald-800');
+    } else {
+      toggleDot.style.transform = 'translateX(0)';
+      label6.classList.remove('text-emerald-800');
+      label6.classList.add('text-slate-400');
+      label5.classList.remove('text-slate-400');
+      label5.classList.add('text-emerald-800');
+    }
+    calculate();
+  });
+
+  toggleHolidayList.addEventListener('click', () => {
+    const isHidden = holidayList.classList.contains('hidden');
+    if (isHidden) {
+      holidayList.classList.remove('hidden');
+      holidayList.classList.add('fade-in');
+      chevron.style.transform = 'rotate(180deg)';
+    } else {
+      holidayList.classList.add('hidden');
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  });
+
+  startInput.addEventListener('change', calculate);
+  endInput.addEventListener('change', calculate);
+
+  // Calcolo iniziale
+  calculate();
+})();
+</script>
+
+</body>
+</html>
