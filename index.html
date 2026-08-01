@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcolatore Scorporo IVA, Ritenuta d'Acconto e Marca da Bollo 2025</title>
+<meta name="description" content="Calcolatore gratuito online per lo scorporo IVA (4%, 5%, 10%, 22%), il calcolo della Ritenuta d'Acconto al 20% e la Marca da Bollo da 2€ in fattura. Risultato istantaneo e in tempo reale.">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  .switch-dot { transition: transform 0.25s ease; }
+  input[type="checkbox"]:checked ~ .switch-track { background-color: #1e293b; }
+  input[type="checkbox"]:checked ~ .switch-track .switch-dot { transform: translateX(1.5rem); }
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<div class="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+
+  <!-- HEADER -->
+  <header class="text-center mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Calcolatore Scorporo IVA, Ritenuta d'Acconto e Bollo</h1>
+    <p class="text-slate-500 mt-2 text-sm sm:text-base">Calcola in tempo reale imponibile, IVA, ritenuta d'acconto e marca da bollo per le tue fatture e prestazioni occasionali.</p>
+  </header>
+
+  <!-- CALCOLATORE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8">
+
+    <!-- Tipo importo -->
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Cosa vuoi inserire?</label>
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 rounded-xl p-1">
+        <button id="btnImponibile" onclick="setInputMode('imponibile')" class="py-2 rounded-lg text-sm font-medium transition-all bg-slate-800 text-white shadow">Importo Imponibile</button>
+        <button id="btnTotale" onclick="setInputMode('totale')" class="py-2 rounded-lg text-sm font-medium transition-all text-slate-600">Importo Totale Fattura</button>
+      </div>
+    </div>
+
+    <!-- Importo -->
+    <div class="mb-5">
+      <label for="importo" class="block text-sm font-semibold text-slate-700 mb-2">Importo (€)</label>
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">€</span>
+        <input type="number" id="importo" inputmode="decimal" placeholder="0,00"
+          class="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-300 focus:border-slate-500 focus:ring-2 focus:ring-slate-200 outline-none text-lg font-semibold transition-all">
+      </div>
+    </div>
+
+    <!-- Aliquota IVA -->
+    <div class="mb-5">
+      <label for="aliquota" class="block text-sm font-semibold text-slate-700 mb-2">Aliquota IVA</label>
+      <select id="aliquota" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-slate-500 focus:ring-2 focus:ring-slate-200 outline-none text-base font-medium bg-white">
+        <option value="22">22% - Ordinaria</option>
+        <option value="10">10% - Ridotta</option>
+        <option value="5">5% - Ridotta</option>
+        <option value="4">4% - Minima</option>
+        <option value="0">0% - Esente / Non soggetto</option>
+      </select>
+    </div>
+
+    <!-- Toggles -->
+    <div class="flex flex-col gap-3 mb-2">
+      <div class="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">
+        <div>
+          <p class="text-sm font-semibold text-slate-700">Ritenuta d'Acconto (20%)</p>
+          <p class="text-xs text-slate-500">Applicata sull'imponibile</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="toggleRitenuta" class="sr-only peer" onchange="calcola()">
+          <div class="switch-track w-12 h-7 bg-slate-300 rounded-full relative transition-colors peer-checked:bg-slate-800">
+            <div class="switch-dot absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow"></div>
+          </div>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">
+        <div>
+          <p class="text-sm font-semibold text-slate-700">Marca da Bollo (2€)</p>
+          <p class="text-xs text-slate-500">Obbligatoria se operazione esente IVA > 77,47€</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="toggleBollo" class="sr-only peer" onchange="calcola()">
+          <div class="switch-track w-12 h-7 bg-slate-300 rounded-full relative transition-colors peer-checked:bg-slate-800">
+            <div class="switch-dot absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow"></div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Avviso bollo -->
+    <div id="avvisoBollo" class="hidden fade-in mt-3 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3">
+      ⚠️ L'imponibile supera 77,47€ in assenza di IVA: la Marca da Bollo da 2€ è obbligatoria in fattura.
+    </div>
+
+    <!-- RISULTATI -->
+    <div class="mt-6 bg-slate-800 rounded-2xl p-5 sm:p-6 text-white">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-4">Riepilogo Calcolo</h2>
+      <div class="space-y-2.5 text-sm">
+        <div class="flex justify-between"><span class="text-slate-300">Imponibile</span><span id="rImponibile" class="font-semibold">€ 0,00</span></div>
+        <div class="flex justify-between"><span class="text-slate-300">IVA</span><span id="rIva" class="font-semibold">€ 0,00</span></div>
+        <div class="flex justify-between"><span class="text-slate-300">Ritenuta d'Acconto</span><span id="rRitenuta" class="font-semibold text-red-300">- € 0,00</span></div>
+        <div class="flex justify-between"><span class="text-slate-300">Marca da Bollo</span><span id="rBollo" class="font-semibold">€ 0,00</span></div>
+      </div>
+      <div class="border-t border-slate-600 mt-4 pt-4 flex justify-between items-center">
+        <span class="text-base font-bold">Totale Netto da Incassare</span>
+        <span id="rTotale" class="text-2xl font-extrabold text-emerald-400">€ 0,00</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SPAZIO PUBBLICITARIO -->
+  <div class="mt-6 border-2 border-dashed border-slate-300 rounded-2xl py-8 text-center text-slate-400 text-sm font-medium">
+    Spazio Pubblicitario
+    <!-- Inserire qui il codice Google AdSense -->
+  </div>
+
+  <!-- SEZIONE SEO -->
+  <section class="mt-12 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-8 leading-relaxed text-slate-700">
+    <h2 class="text-xl font-bold text-slate-800 mb-4">Guida allo Scorporo IVA, Ritenuta d'Acconto e Bollo in Fattura</h2>
+
+    <p class="mb-4">Chi emette fatture, in particolare i titolari di Partita IVA e i lavoratori occasionali, si trova spesso a dover distinguere tra <strong>importo lordo</strong>, <strong>imponibile</strong> e <strong>netto da incassare</strong>. Questo calcolatore permette di ottenere in tempo reale tutti questi valori, semplificando la gestione della fatturazione e delle prestazioni occasionali.</p>
+
+    <h3 class="text-lg font-semibold text-slate-800 mt-6 mb-2">Come funziona lo scorporo dell'IVA</h3>
+    <p class="mb-4">Lo scorporo dell'IVA consiste nel ricavare l'imponibile a partire da un importo totale già comprensivo di imposta. La formula è: <strong>Imponibile = Totale ÷ (1 + Aliquota IVA)</strong>. Ad esempio, con un totale di 122€ e aliquota al 22%, l'imponibile sarà 122 ÷ 1,22 = 100€. Al contrario, se si parte dall'imponibile, l'IVA si calcola moltiplicando l'imponibile per l'aliquota: <strong>IVA = Imponibile × Aliquota</strong>.</p>
+
+    <h3 class="text-lg font-semibold text-slate-800 mt-6 mb-2">Il calcolo della Ritenuta d'Acconto</h3>
+    <p class="mb-4">La Ritenuta d'Acconto è un anticipo fiscale che il committente trattiene e versa direttamente all'Erario per conto del prestatore. Si calcola generalmente al 20% sull'imponibile (non sull'IVA): <strong>Ritenuta = Imponibile × 20%</strong>. Questo importo viene detratto dal totale che il professionista riceverà, ma sarà recuperato in sede di dichiarazione dei redditi come credito d'imposta.</p>
+
+    <h3 class="text-lg font-semibold text-slate-800 mt-6 mb-2">La Marca da Bollo da 2€</h3>
+    <p class="mb-4">La marca da bollo da 2€ è obbligatoria sulle fatture o ricevute di importo superiore a 77,47€ quando l'operazione è esente, esclusa o non soggetta a IVA (ad esempio nel regime forfettario o per prestazioni occasionali senza IVA). L'importo del bollo, se addebitato al committente, va sommato al totale ma non concorre alla formazione dell'imponibile né dell'IVA.</p>
+
+    <h3 class="text-lg font-semibold text-slate-800 mt-6 mb-2">Domande Frequenti (FAQ)</h3>
+
+    <div class="mb-4">
+      <p class="font-semibold text-slate-800">La Ritenuta d'Acconto si applica anche alle fatture in regime forfettario?</p>
+      <p>No. I contribuenti in regime forfettario non subiscono la ritenuta d'acconto: nella fattura va indicata la dicitura specifica che esonera il committente dall'operare la trattenuta, in base alla normativa che regola questo regime agevolato.</p>
+    </div>
+
+    <div class="mb-4">
+      <p class="font-semibold text-slate-800">Quando è obbligatoria la marca da bollo su una prestazione occasionale?</p>
+      <p>La marca da bollo da 2€ è obbligatoria quando la ricevuta per prestazione occasionale supera i 77,47€ e l'operazione non è soggetta a IVA. Se l'importo è inferiore a questa soglia, il bollo non è dovuto.</p>
+    </div>
+
+    <div class="mb-4">
+      <p class="font-semibold text-slate-800">Come si calcola il netto da incassare su una prestazione occasionale con ritenuta?</p>
+      <p>Si parte dal compenso lordo pattuito (imponibile), si sottrae la ritenuta d'acconto del 20% e, se dovuta, si aggiunge la marca da bollo eventualmente riaddebitata al committente. Il risultato è l'importo netto che il prestatore riceverà effettivamente sul proprio conto.</p>
+    </div>
+
+    <p class="text-xs text-slate-400 mt-6">Questo strumento fornisce un calcolo indicativo a scopo informativo e non sostituisce la consulenza di un commercialista o di un consulente fiscale qualificato.</p>
+  </section>
+
+  <footer class="text-center text-xs text-slate-400 mt-10 pb-4">
+    © 2025 Calcolatore Scorporo IVA — Strumento gratuito per la fatturazione
+  </footer>
+
+</div>
+
+<script>
+let inputMode = 'imponibile';
+
+function setInputMode(mode) {
+  inputMode = mode;
+  const btnImp = document.getElementById('btnImponibile');
+  const btnTot = document.getElementById('btnTotale');
+  if (mode === 'imponibile') {
+    btnImp.className = "py-2 rounded-lg text-sm font-medium transition-all bg-slate-800 text-white shadow";
+    btnTot.className = "py-2 rounded-lg text-sm font-medium transition-all text-slate-600";
+  } else {
+    btnTot.className = "py-2 rounded-lg text-sm font-medium transition-all bg-slate-800 text-white shadow";
+    btnImp.className = "py-2 rounded-lg text-sm font-medium transition-all text-slate-600";
+  }
+  calcola();
+}
+
+function formatEuro(n) {
+  return "€ " + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function calcola() {
+  const inputVal = parseFloat(document.getElementById('importo').value.replace(',', '.')) || 0;
+  const aliquota = parseFloat(document.getElementById('aliquota').value) / 100;
+  const ritenutaAttiva = document.getElementById('toggleRitenuta').checked;
+  const bolloAttivo = document.getElementById('toggleBollo').checked;
+
+  let imponibile = 0;
+  let iva = 0;
+
+  if (inputMode === 'totale') {
+    imponibile = inputVal / (1 + aliquota);
+    iva = inputVal - imponibile;
+  } else {
+    imponibile = inputVal;
+    iva = imponibile * aliquota;
+  }
+
+  const ritenuta = ritenutaAttiva ? imponibile * 0.20 : 0;
+  const bollo = bolloAttivo ? 2 : 0;
+  const totaleNetto = imponibile + iva - ritenuta + bollo;
+
+  document.getElementById('rImponibile').textContent = formatEuro(imponibile);
+  document.getElementById('rIva').textContent = formatEuro(iva);
+  document.getElementById('rRitenuta').textContent = (ritenuta > 0 ? "- " : "") + formatEuro(ritenuta);
+  document.getElementById('rBollo').textContent = formatEuro(bollo);
+  document.getElementById('rTotale').textContent = formatEuro(totaleNetto);
+
+  const avviso = document.getElementById('avvisoBollo');
+  if (aliquota === 0 && imponibile > 77.47) {
+    avviso.classList.remove('hidden');
+  } else {
+    avviso.classList.add('hidden');
+  }
+}
+
+document.getElementById('importo').addEventListener('input', calcola);
+document.getElementById('aliquota').addEventListener('change', calcola);
+
+calcola();
+</script>
+
+</body>
+</html>
