@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcolatore Stipendio Netto da RAL 2025 | Netto da Lordo</title>
+<meta name="description" content="Calcola il tuo stipendio netto mensile e annuo a partire dalla RAL. Simulatore aggiornato con i nuovi scaglioni IRPEF, contributi INPS, detrazioni e addizionali regionali.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          slate: {
+            850: '#172033',
+            950: '#0b1120'
+          },
+          brand: {
+            50: '#eef2ff',
+            100: '#e0e7ff',
+            500: '#6366f1',
+            600: '#4f46e5',
+            700: '#4338ca'
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: #4f46e5;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 0 0 1px #4f46e5;
+  }
+  input[type=range] { -webkit-appearance: none; height: 8px; border-radius: 9999px; background: #cbd5e1; }
+  .bar-seg { transition: width 0.4s ease; }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<header class="bg-slate-900 text-white py-6 px-4 shadow-lg">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-2xl md:text-3xl font-bold">Calcolatore Stipendio Netto da RAL</h1>
+    <p class="text-slate-300 text-sm md:text-base mt-1">Stima il tuo netto mensile e annuo con i nuovi scaglioni IRPEF 2025</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- CALCOLATORE -->
+  <section class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    <div class="grid md:grid-cols-2 gap-0">
+
+      <!-- INPUT -->
+      <div class="p-6 md:p-8 border-b md:border-b-0 md:border-r border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0L10 9.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+          Dati del contratto
+        </h2>
+
+        <div class="space-y-6">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-sm font-medium text-slate-700">RAL Annua Lorda</label>
+              <span id="ralDisplay" class="text-brand-700 font-bold text-lg">€ 30.000</span>
+            </div>
+            <input type="range" id="ralSlider" min="10000" max="150000" step="500" value="30000" class="w-full">
+            <input type="number" id="ralInput" min="0" step="100" value="30000" class="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-slate-700 mb-2 block">Numero di Mensilità</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button data-mens="12" class="mens-btn py-2 rounded-lg border text-sm font-medium border-brand-600 bg-brand-600 text-white">12</button>
+              <button data-mens="13" class="mens-btn py-2 rounded-lg border text-sm font-medium border-slate-300 text-slate-700">13</button>
+              <button data-mens="14" class="mens-btn py-2 rounded-lg border text-sm font-medium border-slate-300 text-slate-700">14</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-slate-700 mb-2 block">Regione di Residenza</label>
+            <select id="regione" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="2.00">Media Italia (stima)</option>
+              <option value="1.73">Lombardia</option>
+              <option value="1.73">Veneto</option>
+              <option value="1.73">Sicilia</option>
+              <option value="2.02">Toscana</option>
+              <option value="1.93">Emilia-Romagna</option>
+              <option value="1.93">Puglia</option>
+              <option value="2.22">Piemonte</option>
+              <option value="2.43">Lazio</option>
+              <option value="2.33">Campania</option>
+              <option value="2.33">Calabria</option>
+              <option value="2.10">Marche</option>
+              <option value="2.15">Abruzzo</option>
+              <option value="1.90">Liguria</option>
+              <option value="1.85">Umbria</option>
+              <option value="1.70">Sardegna</option>
+              <option value="1.60">Trentino-Alto Adige</option>
+              <option value="1.90">Friuli-Venezia Giulia</option>
+              <option value="2.20">Basilicata</option>
+              <option value="2.30">Molise</option>
+              <option value="1.65">Valle d'Aosta</option>
+            </select>
+            <p class="text-xs text-slate-400 mt-1">Aliquota media regionale + comunale stimata</p>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-slate-700 mb-2 block">Contratto / Categoria</label>
+            <select id="contratto" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="indeterminato">Tempo Indeterminato</option>
+              <option value="determinato">Tempo Determinato</option>
+              <option value="apprendistato">Apprendistato</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISULTATI -->
+      <div class="p-6 md:p-8 bg-slate-50">
+        <h2 class="text-lg font-semibold text-slate-900 mb-5">Risultato Stima</h2>
+
+        <div class="bg-gradient-to-br from-slate-900 to-brand-700 rounded-2xl p-6 text-white text-center shadow-md mb-4 fade-in">
+          <p class="text-sm text-slate-200 uppercase tracking-wide">Netto Mensile Stimato</p>
+          <p id="nettoMensile" class="text-4xl md:text-5xl font-extrabold mt-1">€ 0</p>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200 text-center mb-5">
+          <p class="text-xs text-slate-500 uppercase tracking-wide">Netto Annuo Totale</p>
+          <p id="nettoAnnuo" class="text-2xl font-bold text-slate-800">€ 0</p>
+        </div>
+
+        <!-- Barra grafica -->
+        <div class="mb-5">
+          <p class="text-xs font-medium text-slate-500 mb-1">Composizione della RAL</p>
+          <div class="w-full h-5 rounded-full overflow-hidden flex bg-slate-200">
+            <div id="barNetto" class="bar-seg bg-brand-600 h-full"></div>
+            <div id="barInps" class="bar-seg bg-amber-500 h-full"></div>
+            <div id="barIrpef" class="bar-seg bg-rose-500 h-full"></div>
+            <div id="barAdd" class="bar-seg bg-slate-400 h-full"></div>
+          </div>
+          <div class="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-600 inline-block"></span>Netto</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>INPS</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>IRPEF</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span>Addizionali</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between py-2 border-b border-slate-200">
+            <span class="text-slate-500">Contributi INPS (9,19%)</span>
+            <span id="inpsVal" class="font-semibold text-slate-800">€ 0</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-slate-200">
+            <span class="text-slate-500">IRPEF Lorda</span>
+            <span id="irpefLordaVal" class="font-semibold text-slate-800">€ 0</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-slate-200">
+            <span class="text-slate-500">Detrazioni Lavoro Dipendente</span>
+            <span id="detrazioniVal" class="font-semibold text-emerald-600">€ 0</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-slate-200">
+            <span class="text-slate-500">IRPEF Netta</span>
+            <span id="irpefNettaVal" class="font-semibold text-slate-800">€ 0</span>
+          </div>
+          <div class="flex justify-between py-2">
+            <span class="text-slate-500">Addizionali Reg./Com.</span>
+            <span id="addVal" class="font-semibold text-slate-800">€ 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADSENSE PLACEHOLDER -->
+  <div class="my-6 border-2 border-dashed border-slate-300 rounded-xl py-10 text-center text-slate-400 text-sm">
+    Spazio Pubblicitario
+  </div>
+
+  <!-- ARTICOLO SEO -->
+  <article class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 md:p-8 mt-8 leading-relaxed text-slate-700">
+    <h2 class="text-2xl font-bold text-slate-900 mb-4">Come si calcola lo stipendio netto dalla RAL?</h2>
+    <p class="mb-4">La <strong>RAL (Retribuzione Annua Lorda)</strong> è l'importo complessivo che un'azienda si impegna a corrispondere a un dipendente in un anno, prima di qualsiasi trattenuta fiscale e previdenziale. È il valore indicato nella lettera di assunzione, ma non corrisponde a quanto viene effettivamente accreditato in busta paga. Per passare dal lordo al netto occorre sottrarre due voci principali: i contributi previdenziali INPS a carico del lavoratore (mediamente il 9,19% della RAL) e l'IRPEF, l'imposta sul reddito delle persone fisiche, calcolata sulla base imponibile residua dopo i contributi.</p>
+
+    <h3 class="text-lg font-semibold text-slate-900 mt-6 mb-2">I nuovi scaglioni IRPEF</h3>
+    <p class="mb-4">Dal 2024 il sistema fiscale italiano prevede tre scaglioni di reddito, applicati in modo progressivo: il <strong>23%</strong> fino a 28.000 euro di reddito imponibile, il <strong>35%</strong> sulla parte compresa tra 28.000 e 50.000 euro, e il <strong>43%</strong> sulla quota che supera i 50.000 euro. Ogni scaglione si applica solo alla parte di reddito che rientra in quella fascia, non all'intero importo. Dall'imposta lorda così ottenuta si sottraggono le <strong>detrazioni da lavoro dipendente</strong>, che decrescono all'aumentare del reddito fino ad azzerarsi oltre i 50.000 euro, e le eventuali addizionali regionali e comunali, che variano in base al luogo di residenza.</p>
+
+    <p class="mb-4">Anche il numero di <strong>mensilità</strong> incide sul risultato mensile: a parità di RAL, uno stipendio suddiviso su 12 mensilità sarà più alto ogni mese rispetto a uno su 13 o 14 mensilità, poiché in questi ultimi casi la stessa cifra annua viene distribuita su un numero maggiore di rate, con la tredicesima e la quattordicesima erogate solitamente a dicembre e a giugno/luglio.</p>
+
+    <h3 class="text-lg font-semibold text-slate-900 mt-6 mb-2">Domande Frequenti</h3>
+
+    <div class="space-y-4">
+      <div>
+        <p class="font-semibold text-slate-800">Perché il netto in busta paga è diverso da quello calcolato online?</p>
+        <p class="text-sm text-slate-600 mt-1">I simulatori online, incluso questo, forniscono una stima basata su aliquote medie. Il valore reale in busta paga può variare in base al CCNL applicato, eventuali welfare aziendali, bonus, straordinari, giorni di assenza e situazione familiare (detrazioni per coniuge o figli a carico), che qui non vengono considerati.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-slate-800">Le addizionali regionali e comunali vengono trattenute ogni mese?</p>
+        <p class="text-sm text-slate-600 mt-1">Di norma le addizionali dell'anno precedente vengono trattenute a rate mensili nel corso dell'anno in corso, mentre il conguaglio dell'anno corrente avviene solitamente nelle ultime buste paga o a inizio anno successivo, a seconda delle policy aziendali.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-slate-800">Conviene di più un contratto a 12, 13 o 14 mensilità?</p>
+        <p class="text-sm text-slate-600 mt-1">Il totale netto annuo percepito è sostanzialmente equivalente a parità di RAL; cambia solo la distribuzione nel tempo. Con 12 mensilità si ha un importo mensile più alto e costante, mentre con 13 o 14 si ricevono delle mensilità aggiuntive concentrate in periodi specifici dell'anno, utili per spese pianificate come le vacanze o le festività.</p>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 mt-6">Le informazioni contenute in questa pagina hanno finalità puramente indicativa e non sostituiscono una consulenza personalizzata da parte di un commercialista o consulente del lavoro abilitato.</p>
+  </article>
+
+</main>
+
+<footer class="text-center text-xs text-slate-400 py-8">
+  © 2025 Calcolatore Stipendio Netto — Strumento di stima, non sostitutivo di consulenza professionale.
+</footer>
+
+<script>
+(function() {
+  const ralSlider = document.getElementById('ralSlider');
+  const ralInput = document.getElementById('ralInput');
+  const ralDisplay = document.getElementById('ralDisplay');
+  const regioneSel = document.getElementById('regione');
+  const contrattoSel = document.getElementById('contratto');
+  const mensBtns = document.querySelectorAll('.mens-btn');
+
+  let mensilita = 12;
+
+  function formatEuro(v) {
+    return '€ ' + Math.round(v).toLocaleString('it-IT');
+  }
+
+  function calcolaIRPEF(imponibile) {
+    let tax = 0;
+    if (imponibile <= 28000) {
+      tax = imponibile * 0.23;
+    } else if (imponibile <= 50000) {
+      tax = 28000 * 0.23 + (imponibile - 28000) * 0.35;
+    } else {
+      tax = 28000 * 0.23 + 22000 * 0.35 + (imponibile - 50000) * 0.43;
+    }
+    return tax;
+  }
+
+  function calcolaDetrazioni(reddito) {
+    let d = 0;
+    if (reddito <= 15000) {
+      d = 1955;
+    } else if (reddito <= 28000) {
+      d = 1910 + 1190 * (28000 - reddito) / 13000;
+    } else if (reddito <= 50000) {
+      d = 1190 * (50000 - reddito) / 22000;
+    } else {
+      d = 0;
+    }
+    return Math.max(d, 0);
+  }
+
+  function calcola() {
+    const ral = parseFloat(ralInput.value) || 0;
+    const aliquotaAdd = parseFloat(regioneSel.value) / 100;
+    const contratto = contrattoSel.value;
+
+    let tassoInps = 0.0919;
+    if (contratto === 'apprendistato') tassoInps = 0.0919; // stima invariata, contribuzione agevolata a carico azienda
+
+    const inps = ral * tassoInps;
+    const imponibileIrpef = Math.max(ral - inps, 0);
+
+    const irpefLorda = calcolaIRPEF(imponibileIrpef);
+    const detrazioni = calcolaDetrazioni(imponibileIrpef);
+    const irpefNetta = Math.max(irpefLorda - detrazioni, 0);
+
+    const addizionali = imponibileIrpef * aliquotaAdd;
+
+    const nettoAnnuo = ral - inps - irpefNetta - addizionali;
+    const nettoMensile = nettoAnnuo / mensilita;
+
+    document.getElementById('nettoMensile').textContent = formatEuro(nettoMensile);
+    document.getElementById('nettoAnnuo').textContent = formatEuro(nettoAnnuo);
+    document.getElementById('inpsVal').textContent = formatEuro(inps);
+    document.getElementById('irpefLordaVal').textContent = formatEuro(irpefLorda);
+    document.getElementById('detrazioniVal').textContent = '- ' + formatEuro(detrazioni);
+    document.getElementById('irpefNettaVal').textContent = formatEuro(irpefNetta);
+    document.getElementById('addVal').textContent = formatEuro(addizionali);
+
+    const total = ral || 1;
+    const pNetto = Math.max(nettoAnnuo / total * 100, 0);
+    const pInps = inps / total * 100;
+    const pIrpef = irpefNetta / total * 100;
+    const pAdd = addizionali / total * 100;
+
+    document.getElementById('barNetto').style.width = pNetto + '%';
+    document.getElementById('barInps').style.width = pInps + '%';
+    document.getElementById('barIrpef').style.width = pIrpef + '%';
+    document.getElementById('barAdd').style.width = pAdd + '%';
+  }
+
+  function syncRal(value) {
+    value = Math.max(0, Math.min(150000, value));
+    ralSlider.value = value;
+    ralInput.value = value;
+    ralDisplay.textContent = formatEuro(value);
+    calcola();
+  }
+
+  ralSlider.addEventListener('input', () => syncRal(parseFloat(ralSlider.value)));
+  ralInput.addEventListener('input', () => syncRal(parseFloat(ralInput.value) || 0));
+  regioneSel.addEventListener('change', calcola);
+  contrattoSel.addEventListener('change', calcola);
+
+  mensBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mensBtns.forEach(b => {
+        b.classList.remove('border-brand-600', 'bg-brand-600', 'text-white');
+        b.classList.add('border-slate-300', 'text-slate-700');
+      });
+      btn.classList.remove('border-slate-300', 'text-slate-700');
+      btn.classList.add('border-brand-600', 'bg-brand-600', 'text-white');
+      mensilita = parseInt(btn.dataset.mens, 10);
+      calcola();
+    });
+  });
+
+  syncRal(30000);
+})();
+</script>
+
+</body>
+</html>
