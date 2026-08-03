@@ -1,0 +1,336 @@
+```html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcolatore Netto Partita IVA Forfettario 2025 | Tasse e Contributi INPS</title>
+<meta name="description" content="Calcola in tempo reale il netto in tasca della tua Partita IVA in Regime Forfettario: imposta sostitutiva, contributi INPS e coefficiente di redditività per ATECO.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          petrolio: {
+            50: '#f0fdfa',
+            100: '#ccfbf1',
+            500: '#0d9488',
+            600: '#0f766e',
+            700: '#115e59',
+            800: '#134e4a',
+            900: '#042f2e',
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Segoe UI', ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .fade-in { animation: fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<div class="max-w-3xl mx-auto px-4 py-8 sm:py-12">
+
+  <!-- HEADER -->
+  <header class="text-center mb-8">
+    <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+      Calcolatore Netto <span class="text-petrolio-600">Regime Forfettario</span>
+    </h1>
+    <p class="mt-2 text-slate-500 text-sm sm:text-base">
+      Scopri quanto ti resta davvero in tasca: tasse, contributi INPS e netto reale calcolati in tempo reale.
+    </p>
+  </header>
+
+  <!-- CALCOLATORE -->
+  <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-5 sm:p-8">
+
+    <!-- Fatturato -->
+    <div class="mb-6">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Fatturato Annuo Previsto / Incassato (€)</label>
+      <input type="number" id="fatturato" value="30000" min="0" step="500"
+        class="w-full text-lg sm:text-xl font-bold rounded-xl border-2 border-slate-200 focus:border-petrolio-500 focus:ring-0 outline-none px-4 py-3 transition-colors">
+      <div id="avvisoLimite" class="hidden mt-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 fade-in"></div>
+    </div>
+
+    <!-- Coefficiente ATECO -->
+    <div class="mb-6">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Codice ATECO / Tipo di Attività</label>
+      <select id="coefficiente" class="w-full rounded-xl border-2 border-slate-200 focus:border-petrolio-500 focus:ring-0 outline-none px-4 py-3 bg-white text-slate-800 font-medium">
+        <option value="0.78">Professionisti (consulenza, sanitarie, tecniche, finanziarie) — 78%</option>
+        <option value="0.40" selected>Commercio all'ingrosso/dettaglio ed E-commerce — 40%</option>
+        <option value="0.40">Alimentari, bevande, ristorazione, alloggio — 40%</option>
+        <option value="0.67">Artigiani / Altre attività economiche — 67%</option>
+        <option value="0.86">Costruzioni e attività immobiliari — 86%</option>
+        <option value="0.62">Intermediari del commercio — 62%</option>
+        <option value="0.54">Commercio ambulante (non alimentare) — 54%</option>
+      </select>
+    </div>
+
+    <!-- Aliquota Sostitutiva -->
+    <div class="mb-6">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Aliquota Imposta Sostitutiva</label>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" data-rate="0.05" class="rate-btn ring-2 ring-petrolio-600 bg-petrolio-50 text-petrolio-700 rounded-xl py-3 font-bold transition-all">
+          5% <span class="block text-xs font-normal">Startup (primi 5 anni)</span>
+        </button>
+        <button type="button" data-rate="0.15" class="rate-btn ring-2 ring-slate-200 text-slate-600 rounded-xl py-3 font-bold transition-all">
+          15% <span class="block text-xs font-normal">Aliquota ordinaria</span>
+        </button>
+      </div>
+      <input type="hidden" id="aliquotaSostitutiva" value="0.05">
+    </div>
+
+    <!-- Cassa Previdenziale -->
+    <div class="mb-2">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Cassa Previdenziale</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button type="button" data-cassa="gestioneSeparata" class="cassa-btn ring-2 ring-petrolio-600 bg-petrolio-50 text-petrolio-700 rounded-xl py-3 px-3 font-bold text-sm transition-all">
+          Gestione Separata INPS <span class="block text-xs font-normal">26,07% sul reddito</span>
+        </button>
+        <button type="button" data-cassa="artigianiCommercianti" class="cassa-btn ring-2 ring-slate-200 text-slate-600 rounded-xl py-3 px-3 font-bold text-sm transition-all">
+          Artigiani / Commercianti <span class="block text-xs font-normal">Aliquota fissa + minimale</span>
+        </button>
+      </div>
+      <input type="hidden" id="cassaPrevidenziale" value="gestioneSeparata">
+    </div>
+
+    <div id="riduzioneWrap" class="hidden mt-3 fade-in">
+      <label class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 cursor-pointer">
+        <input type="checkbox" id="riduzione35" class="w-5 h-5 accent-petrolio-600">
+        <span class="text-sm font-medium text-slate-700">Applica riduzione contributiva del 35% (Artigiani/Commercianti forfettari)</span>
+      </label>
+    </div>
+
+  </div>
+
+  <!-- RISULTATI -->
+  <div class="mt-6 bg-slate-900 rounded-3xl shadow-xl p-5 sm:p-8 text-white">
+    <h2 class="text-lg font-bold mb-5 text-slate-200">📊 Il tuo riepilogo fiscale</h2>
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-5">
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-xs text-slate-400 mb-1">Reddito Imponibile</p>
+        <p id="redditoImponibile" class="text-lg sm:text-2xl font-extrabold">€ 0</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-xs text-slate-400 mb-1">Imposta Sostitutiva</p>
+        <p id="imposta" class="text-lg sm:text-2xl font-extrabold text-amber-400">€ 0</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-xs text-slate-400 mb-1">Contributi INPS</p>
+        <p id="contributi" class="text-lg sm:text-2xl font-extrabold text-amber-400">€ 0</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-xs text-slate-400 mb-1">Totale Spese Fisc./Prev.</p>
+        <p id="totaleSpese" class="text-lg sm:text-2xl font-extrabold text-red-400">€ 0</p>
+      </div>
+    </div>
+
+    <!-- Netto in evidenza -->
+    <div class="bg-gradient-to-br from-petrolio-600 to-petrolio-800 rounded-2xl p-5 sm:p-6 text-center shadow-lg">
+      <p class="text-sm font-medium text-petrolio-100 mb-1">Netto Reale in Tasca</p>
+      <p id="netto" class="text-3xl sm:text-5xl font-black tracking-tight">€ 0</p>
+      <p id="percentualeNetto" class="text-sm mt-2 text-petrolio-100 font-semibold">0% del fatturato</p>
+    </div>
+
+    <!-- Barra proporzionale -->
+    <div class="mt-5">
+      <div class="w-full h-4 bg-white/10 rounded-full overflow-hidden flex">
+        <div id="barTasse" class="h-full bg-red-400 transition-all duration-300" style="width:0%"></div>
+        <div id="barNetto" class="h-full bg-petrolio-400 transition-all duration-300" style="width:0%"></div>
+      </div>
+      <div class="flex justify-between text-xs text-slate-400 mt-2">
+        <span>🔴 Tasse e Contributi</span>
+        <span>🟢 Netto</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPAZIO PUBBLICITARIO -->
+  <div class="mt-6 border-2 border-dashed border-slate-300 rounded-2xl py-8 px-4 text-center text-slate-400 bg-white/50">
+    <p class="text-sm font-medium tracking-wide uppercase">Spazio Pubblicitario</p>
+    <p class="text-xs mt-1">(Banner Google AdSense)</p>
+  </div>
+
+  <!-- ARTICOLO SEO -->
+  <article class="mt-10 bg-white rounded-3xl shadow-md border border-slate-100 p-6 sm:p-10">
+    <h2 class="text-2xl font-bold text-slate-900 mb-4">Come funziona la tassazione nel Regime Forfettario</h2>
+
+    <p class="text-slate-600 leading-relaxed mb-4">
+      Il Regime Forfettario è il sistema fiscale agevolato pensato per liberi professionisti, artigiani e piccole
+      attività commerciali con un fatturato annuo che non supera gli 85.000 €. A differenza del regime ordinario,
+      non prevede la detrazione analitica dei costi sostenuti: il reddito imponibile viene infatti determinato in
+      modo forfettario, applicando al fatturato incassato una percentuale fissa stabilita dalla legge in base al
+      codice ATECO dell'attività svolta. Su questo reddito imponibile, ridotto dei contributi previdenziali versati,
+      si applica poi un'imposta sostitutiva unica che copre IRPEF, addizionali regionali e comunali e IRAP.
+    </p>
+
+    <h3 class="text-xl font-bold text-slate-900 mb-3 mt-6">Cos'è il coefficiente di redditività?</h3>
+    <p class="text-slate-600 leading-relaxed mb-4">
+      Il coefficiente di redditività è la percentuale che lo Stato presume corrisponda al margine di guadagno reale
+      della tua attività, indipendentemente dalle spese effettivamente sostenute. Ogni codice ATECO ha un
+      coefficiente specifico: i professionisti (consulenti, avvocati, sanitari) hanno un coefficiente del 78%,
+      considerato un'attività a basso costo operativo; il commercio e l'e-commerce si fermano al 40%, poiché si
+      presume un'incidenza maggiore dei costi di acquisto merce; gli artigiani e le altre attività si attestano
+      generalmente al 67%. Moltiplicando il fatturato per il coefficiente si ottiene il reddito imponibile su cui
+      calcolare tasse e contributi: più basso è il coefficiente, minore sarà la base imponibile e quindi le imposte
+      dovute, a parità di fatturato.
+    </p>
+
+    <h3 class="text-xl font-bold text-slate-900 mb-3 mt-6">Domande Frequenti (FAQ)</h3>
+
+    <div class="space-y-4">
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+        <p class="font-semibold text-slate-800">Cosa succede se supero il limite di 85.000 € di fatturato?</p>
+        <p class="text-slate-600 mt-1 text-sm leading-relaxed">
+          Se il fatturato annuo supera gli 85.000 € ma resta sotto i 100.000 €, si esce dal regime forfettario a
+          partire dall'anno fiscale successivo, passando al regime ordinario (persone fisiche con contabilità
+          semplificata). Se invece il fatturato supera i 100.000 € nello stesso anno, la fuoriuscita è immediata e il
+          regime ordinario si applica già dal superamento della soglia, con obbligo di applicare l'IVA sulle fatture
+          successive.
+        </p>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+        <p class="font-semibold text-slate-800">Posso scegliere liberamente tra aliquota al 5% e al 15%?</p>
+        <p class="text-slate-600 mt-1 text-sm leading-relaxed">
+          No, l'aliquota agevolata al 5% è riservata alle nuove attività nei primi cinque anni, a condizione di non
+          aver esercitato attività simili nei tre anni precedenti l'apertura della partita IVA, di non superare
+          determinati limiti di fatturato rispetto ad attività precedenti e di non trattarsi di una mera prosecuzione
+          di un rapporto di lavoro dipendente. Superati i cinque anni agevolati, o in assenza dei requisiti,
+          si applica automaticamente l'aliquota ordinaria del 15%.
+        </p>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+        <p class="font-semibold text-slate-800">I contributi INPS sono sempre dovuti anche con pochi incassi?</p>
+        <p class="text-slate-600 mt-1 text-sm leading-relaxed">
+          Dipende dalla cassa previdenziale di appartenenza. Chi versa alla Gestione Separata INPS paga i contributi
+          in percentuale sul reddito effettivamente prodotto, quindi senza importi minimi fissi: se il reddito è
+          basso, anche i contributi saranno proporzionalmente ridotti. Chi invece è iscritto alla gestione
+          Artigiani e Commercianti è tenuto a versare un contributo minimo fisso calcolato su un reddito minimale
+          stabilito ogni anno dall'INPS, indipendentemente dal fatturato realizzato, salvo l'applicazione della
+          riduzione contributiva del 35% prevista per i soggetti in regime forfettario.
+        </p>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 mt-6 leading-relaxed">
+      * Il presente calcolatore fornisce una stima indicativa basata sulla normativa vigente e non sostituisce la
+      consulenza di un commercialista o di un consulente del lavoro abilitato.
+    </p>
+  </article>
+
+</div>
+
+<script>
+  const fatturatoInput = document.getElementById('fatturato');
+  const coefficienteSelect = document.getElementById('coefficiente');
+  const aliquotaHidden = document.getElementById('aliquotaSostitutiva');
+  const cassaHidden = document.getElementById('cassaPrevidenziale');
+  const riduzioneCheckbox = document.getElementById('riduzione35');
+  const riduzioneWrap = document.getElementById('riduzioneWrap');
+  const avvisoLimite = document.getElementById('avvisoLimite');
+
+  const rateBtns = document.querySelectorAll('.rate-btn');
+  const cassaBtns = document.querySelectorAll('.cassa-btn');
+
+  const ATTIVE_RING = 'ring-2 ring-petrolio-600 bg-petrolio-50 text-petrolio-700';
+  const INACTIVE_RING = 'ring-2 ring-slate-200 text-slate-600';
+
+  rateBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      rateBtns.forEach(b => { b.className = 'rate-btn ' + INACTIVE_RING + ' rounded-xl py-3 font-bold transition-all'; });
+      btn.className = 'rate-btn ' + ATTIVE_RING + ' rounded-xl py-3 font-bold transition-all';
+      aliquotaHidden.value = btn.dataset.rate;
+      calcola();
+    });
+  });
+
+  cassaBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      cassaBtns.forEach(b => { b.className = 'cassa-btn ' + INACTIVE_RING + ' rounded-xl py-3 px-3 font-bold text-sm transition-all'; });
+      btn.className = 'cassa-btn ' + ATTIVE_RING + ' rounded-xl py-3 px-3 font-bold text-sm transition-all';
+      cassaHidden.value = btn.dataset.cassa;
+      riduzioneWrap.classList.toggle('hidden', btn.dataset.cassa !== 'artigianiCommercianti');
+      calcola();
+    });
+  });
+
+  [fatturatoInput, coefficienteSelect, riduzioneCheckbox].forEach(el => {
+    el.addEventListener('input', calcola);
+    el.addEventListener('change', calcola);
+  });
+
+  function formattaEuro(numero) {
+    return numero.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+  }
+
+  function calcola() {
+    const fatturato = Math.max(0, parseFloat(fatturatoInput.value) || 0);
+    const coefficiente = parseFloat(coefficienteSelect.value);
+    const aliquotaSostitutiva = parseFloat(aliquotaHidden.value);
+    const cassa = cassaHidden.value;
+    const riduzioneAttiva = riduzioneCheckbox.checked;
+
+    // Avviso limite fatturato
+    if (fatturato > 100000) {
+      avvisoLimite.textContent = '⚠️ Hai superato i 100.000 €: la fuoriuscita dal regime forfettario è immediata, con applicazione dell\'IVA già dal superamento della soglia.';
+      avvisoLimite.classList.remove('hidden');
+      avvisoLimite.classList.remove('text-amber-700','bg-amber-50','border-amber-200');
+      avvisoLimite.classList.add('text-red-700','bg-red-50','border-red-200');
+    } else if (fatturato > 85000) {
+      avvisoLimite.textContent = '⚠️ Hai superato la soglia di 85.000 €: dal prossimo anno fiscale uscirai dal regime forfettario e passerai al regime ordinario.';
+      avvisoLimite.classList.remove('hidden');
+      avvisoLimite.classList.remove('text-red-700','bg-red-50','border-red-200');
+      avvisoLimite.classList.add('text-amber-700','bg-amber-50','border-amber-200');
+    } else {
+      avvisoLimite.classList.add('hidden');
+    }
+
+    // Reddito imponibile lordo (prima dei contributi)
+    const redditoImponibileBase = fatturato * coefficiente;
+
+    // Contributi INPS
+    let contributi = 0;
+    if (cassa === 'gestioneSeparata') {
+      contributi = redditoImponibileBase * 0.2607;
+    } else {
+      const MINIMALE_REDDITO = 18415; // minimale reddituale artigiani/commercianti (stima indicativa)
+      const ALIQUOTA_ARTCOMM = 0.24;
+      const baseContributiva = Math.max(redditoImponibileBase, MINIMALE_REDDITO);
+      contributi = baseContributiva * ALIQUOTA_ARTCOMM;
+      if (riduzioneAttiva) contributi *= 0.65;
+    }
+
+    // Reddito imponibile netto per imposta sostitutiva (dedotti i contributi versati)
+    const redditoImponibileNetto = Math.max(0, redditoImponibileBase - contributi);
+    const imposta = redditoImponibileNetto * aliquotaSostitutiva;
+
+    const totaleSpese = imposta + contributi;
+    const netto = fatturato - totaleSpese;
+    const percentualeNetto = fatturato > 0 ? (netto / fatturato) * 100 : 0;
+    const percentualeTasse = fatturato > 0 ? (totaleSpese / fatturato) * 100 : 0;
+
+    document.getElementById('redditoImponibile').textContent = formattaEuro(redditoImponibileBase);
+    document.getElementById('imposta').textContent = formattaEuro(imposta);
+    document.getElementById('contributi').textContent = formattaEuro(contributi);
+    document.getElementById('totaleSpese').textContent = formattaEuro(totaleSpese);
+    document.getElementById('netto').textContent = formattaEuro(netto);
+    document.getElementById('percentualeNetto').textContent = percentualeNetto.toFixed(1) + '% del fatturato';
+
+    document.getElementById('barTasse').style.width = percentualeTasse.toFixed(1) + '%';
+    document.getElementById('barNetto').style.width = percentualeNetto.toFixed(1) + '%';
+  }
+
+  calcola();
+</script>
+
+</body>
+</html>
+```
